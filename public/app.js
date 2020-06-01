@@ -1,8 +1,8 @@
 const toCurrency = price => {
-	new Intl.NumberFormat('ru-RU',{
+	return new Intl.NumberFormat('ru-RU',{
 		currency: 'rub',
 		style: 'currency'
-	}).format(price)
+	}).format(parseInt(price))
 }
 
 document.querySelectorAll(".price").forEach(node =>{
