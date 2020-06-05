@@ -8,9 +8,20 @@ const homeRoutes = require('./routes/home')
 const cartRoutes = require('./routes/cart')
 const addRoutes = require('./routes/add')
 const coursesRoutes = require('./routes/courses')
+const User = require('./models/user')
 const hbs = exphbs.create({
 	defaultLayout: 'main',
 	extname: 'hbs'
+})
+
+app.use(async ( req,res, next) => {
+	try{
+	const user = await User.findById('5eda3d5fe3f64831e4ff1466')
+	req.user = user
+	next()
+	} catch (e) {
+		console.log(e)
+	}
 })
 
 app.use(express.static(path.join(__dirname,'public')))
@@ -32,6 +43,15 @@ async function start(){
 			useUnifiedTopology: true,
 			useFindAndModify: false
 		})
+		const candidate = await User.findOne()
+		if (!candidate) {
+			const user = new User({
+				email: 'Nikitalox@gmail.com',
+				name: 'Nikitalox',
+				cart: {items: []}
+			})
+			await user.save()
+		}
 		app.listen(PORT, () => {
 		console.log(`Server started...${PORT}`)
 		})
