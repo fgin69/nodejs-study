@@ -3,7 +3,7 @@ const Course = require('../models/course')
 const router = Router();
 
 router.get('/', async (req,res) =>{
-	const courses = await Course.find().lean().populate('userId', 'email name')
+	const courses = await Course.find().populate('userId', 'email name').lean()
 	
 	res.render('courses', {
 		title: 'Курсы',
