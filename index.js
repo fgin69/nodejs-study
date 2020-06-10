@@ -1,58 +1,64 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const mongoose = require('mongoose')
+const csrf = require('csurf');
+const flash = require('connect-flash');
+const mongoose = require('mongoose');
 const PORT = process.env.PORT || 3000;
-const exphbs = require('express-handlebars')
-const homeRoutes = require('./routes/home')
-const cartRoutes = require('./routes/cart')
-const addRoutes = require('./routes/add')
-const coursesRoutes = require('./routes/courses')
-const User = require('./models/user')
-const ordersRoutes = require('./routes/orders')
+const exphbs = require('express-handlebars');
+const session = require('express-session');
+const MongoStore = require('connect-mongodb-session') (session)
+const homeRoutes = require('./routes/home');
+const cartRoutes = require('./routes/cart');
+const addRoutes = require('./routes/add');
+const coursesRoutes = require('./routes/courses');
+const ordersRoutes = require('./routes/orders');
+const authRoutes = require('./routes/auth');
+const varMiddleware = require('./middleware/variables');
+const userMiddleware = require('./middleware/user');
+
+const MONGODB_URI = 'mongodb://localhost:27017/shop'
 const hbs = exphbs.create({
 	defaultLayout: 'main',
 	extname: 'hbs'
 })
+const store = new MongoStore({
+	collection: 'sessions',
+	uri: MONGODB_URI
 
-app.use(async ( req,res, next) => {
-	try{
-	const user = await User.findById('5eda3d5fe3f64831e4ff1466')
-	req.user = user
-	next()
-	} catch (e) {
-		console.log(e)
-	}
 })
 
 app.use(express.static(path.join(__dirname,'public')))
 app.use(express.urlencoded({extended: true}))
+app.use(session({
+	secret: 'some secret value',
+	resave: false,
+	saveUninitialized: false,
+	store
+}))
+app.use(csrf())
+app.use(flash())
+app.use(varMiddleware)
+app.use(userMiddleware)
+
 app.use('/',homeRoutes)
 app.use('/add',addRoutes)
 app.use('/courses',coursesRoutes)
 app.use('/cart', cartRoutes)
 app.use('/orders', ordersRoutes)
+app.use('/auth', authRoutes)
 app.engine('hbs', hbs.engine)
 app.set('view engine', 'hbs')
 app.set('views','views')
 
+
 async function start(){
 	try{
-		const url = 'mongodb://localhost:27017/shop'
-		await mongoose.connect(url, {
+		await mongoose.connect(MONGODB_URI, {
 			useNewUrlParser: true,
 			useUnifiedTopology: true,
 			useFindAndModify: false
 		})
-		const candidate = await User.findOne()
-		if (!candidate) {
-			const user = new User({
-				email: 'Nikitalox@gmail.com',
-				name: 'Nikitalox',
-				cart: {items: []}
-			})
-			await user.save()
-		}
 		app.listen(PORT, () => {
 		console.log(`Server started...${PORT}`)
 		})
