@@ -16,22 +16,22 @@ const ordersRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth');
 const varMiddleware = require('./middleware/variables');
 const userMiddleware = require('./middleware/user');
+const keys = require('./keys')
 
-const MONGODB_URI = 'mongodb://localhost:27017/shop'
 const hbs = exphbs.create({
 	defaultLayout: 'main',
 	extname: 'hbs'
 })
 const store = new MongoStore({
 	collection: 'sessions',
-	uri: MONGODB_URI
+	uri: keys.MONGODB_URI
 
 })
 
 app.use(express.static(path.join(__dirname,'public')))
 app.use(express.urlencoded({extended: true}))
 app.use(session({
-	secret: 'some secret value',
+	secret: keys.SESSION_SECRET,
 	resave: false,
 	saveUninitialized: false,
 	store
@@ -54,7 +54,7 @@ app.set('views','views')
 
 async function start(){
 	try{
-		await mongoose.connect(MONGODB_URI, {
+		await mongoose.connect(keys.MONGODB_URI, {
 			useNewUrlParser: true,
 			useUnifiedTopology: true,
 			useFindAndModify: false
